@@ -23,28 +23,45 @@ Then use it in Claude Code:
 /meeting-notes
 ```
 
+Optionally, copy `CLAUDE.md.example` to `~/.claude/CLAUDE.md` so Claude auto-detects when to use skills.
+
 ## Available Skills
 
 ### `/meeting-notes`
-Create Obsidian meeting notes from MacWhisper transcriptions.
+Create Obsidian meeting notes from any transcript source (MacWhisper, Otter.ai, etc.).
 
 **Requirements:**
-- [MacWhisper](https://goodsnooze.gumroad.com/l/macwhisper) with "Automatically create .whisper file" enabled
-- Obsidian vault with a Meetings folder
+- Obsidian vault with `Meetings/` and `Transcripts/` folders
 - Claude Code with Obsidian vault MCP server configured
+- One or more transcript sources:
+  - [MacWhisper](https://goodsnooze.gumroad.com/l/macwhisper) with "Automatically create .whisper file" enabled
+  - [Otter.ai](https://otter.ai) with MCP server configured
 
 **Features:**
-- Extracts transcription from `.whisper` files
-- Analyzes transcript for topics, action items, decisions
-- Creates structured meeting notes with proper frontmatter
-- Can update existing meeting notes
+- Auto-detects transcript source or specify with flags
+- Creates separate transcript file in `Transcripts/`
+- Creates meeting note in `Meetings/` with link to transcript
+- Extracts topics, action items, decisions from transcript
+- Supports attendees and project name overrides
+
+**What it creates:**
+
+1. `Transcripts/YYYY-MM-DD <Project> Meeting Transcript.md` - full transcript
+2. `Meetings/YYYY-MM-DD <Project> Meeting.md` - structured notes with:
+   - Frontmatter (date, project, attendees, topics, transcriptFile link)
+   - Summary
+   - Key Points
+   - Action Items
+   - Decisions
 
 **Usage:**
 ```
-/meeting-notes                              # Process most recent transcription
-/meeting-notes "project name"               # Process specific recording
-/meeting-notes mehul --attendees "Mehul, Darren"  # With attendees
-/meeting-notes --update                     # Update existing note
+/meeting-notes                              # Auto-detect, most recent transcript
+/meeting-notes clare                        # Find MacWhisper file matching "clare"
+/meeting-notes aaron --otter                # Search Otter for "aaron"
+/meeting-notes --macwhisper                 # Force MacWhisper source
+/meeting-notes --attendees "Name1, Name2"   # Specify attendees
+/meeting-notes --project "ProjectName"      # Override project name
 ```
 
 ---
@@ -107,6 +124,10 @@ The user provides: $ARGUMENTS
 ### Variables
 
 - `$ARGUMENTS` - User input after the skill name
+
+## Global CLAUDE.md
+
+Copy `CLAUDE.md.example` to `~/.claude/CLAUDE.md` to enable auto-detection of when to use skills. This tells Claude to automatically invoke `/meeting-notes` when you say things like "make meeting notes for my call with Aaron".
 
 ## Contributing
 
