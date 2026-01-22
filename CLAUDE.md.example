@@ -1,0 +1,102 @@
+# Global Claude Code Instructions
+
+## Available Skills
+
+Skills are in `~/.claude/commands/`. Use them automatically when relevant.
+
+### `/meeting-notes` - MacWhisper Transcription → Obsidian Meeting Notes
+
+**When to use:** Automatically invoke this skill when the user:
+- Asks to create meeting notes from a recording/transcription
+- Says "make meeting notes for the meeting I just had"
+- Mentions MacWhisper or a transcription
+- Asks to process a recording into notes
+
+**What it does:**
+1. Finds transcriptions in `~/Documents/AudioTranscriptions/`
+2. Extracts transcript from `.whisper` files
+3. Analyzes for topics, action items, decisions
+4. Creates Obsidian meeting note following the schema
+
+**Usage:**
+```
+/meeting-notes                           # Most recent transcription
+/meeting-notes clare                     # Match recording name
+/meeting-notes clare --attendees "Clare Attwell, Darren"
+/meeting-notes --update                  # Update existing note
+```
+
+### `/transcribe` - YouTube Video Transcription
+
+**When to use:** When user asks to transcribe a YouTube video.
+
+**Usage:**
+```
+/transcribe <youtube-url>
+/transcribe <url> --output file.md
+/transcribe <url> --whisper
+```
+
+## Obsidian Vault
+
+The user's Obsidian vault is at `~/Documents/Notes/`. When creating or editing notes there, use the MCP tools (`vault_write_note`, `vault_read_note`, etc.) and follow existing schemas in `Templates/`.
+
+## Meeting Notes - IMPORTANT PATTERN
+
+When creating meeting notes from ANY transcript source (MacWhisper, Otter, Zoom, etc.):
+
+### 1. Save transcript as separate file
+Create: `Transcripts/YYYY-MM-DD <Project> Meeting Transcript.md`
+```markdown
+# <Project> Meeting Transcript - YYYY-MM-DD
+
+Source: <MacWhisper/Otter/Zoom/etc>
+
+---
+
+<full transcript text>
+```
+
+### 2. Create meeting note with link to transcript
+Create: `Meetings/YYYY-MM-DD <Project> Meeting.md`
+
+**Frontmatter must include:**
+```yaml
+transcriptFile: "[[Transcripts/YYYY-MM-DD <Project> Meeting Transcript]]"
+transcriptSource: <MacWhisper/Otter/Zoom/etc>
+```
+
+**Body must include actual content (not just frontmatter):**
+```markdown
+# <Project> Meeting - YYYY-MM-DD
+
+## Summary
+<2-3 sentence summary>
+
+## Key Points
+- Point 1
+- Point 2
+
+## Action Items
+- [ ] Action 1
+- [ ] Action 2
+
+## Decisions
+- Decision 1
+```
+
+### DO NOT:
+- Put everything in frontmatter only - the body needs readable content
+- Embed full transcript in meeting note body - link to separate file instead
+- Skip creating the transcript file
+
+## MacWhisper Transcriptions
+
+MacWhisper saves recordings with auto-generated transcriptions to:
+`~/Documents/AudioTranscriptions/`
+
+Files are `.whisper` format (ZIP containing `metadata.json` with transcript).
+
+## Otter.ai Transcriptions
+
+Use the Otter MCP tools (`otter_list_transcripts`, `otter_get_transcript`, etc.) to retrieve transcripts.
