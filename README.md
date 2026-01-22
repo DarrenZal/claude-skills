@@ -1,90 +1,66 @@
-# Claude Code Skills
+# Claude Code Configuration
 
-A collection of custom skills for [Claude Code](https://claude.ai/code) (Anthropic's CLI tool).
+Personal configuration, skills, and MCP servers for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
 
-## What are Skills?
+## Structure
 
-Skills are markdown files that teach Claude Code how to perform specific tasks. They're like reusable prompts with instructions, tool permissions, and workflows.
+```
+claude/
+├── skills/              # Custom slash commands
+│   ├── meeting-notes.md
+│   └── transcribe.md
+├── mcp-servers/         # MCP server setup guides
+│   ├── otter.md
+│   ├── google-workspace.md
+│   ├── obsidian-vault.md
+│   ├── playwright.md
+│   └── chrome-devtools.md
+├── CLAUDE.md.example    # Global CLAUDE.md template
+└── docs/                # Tips and guides
+```
 
-## Installation
+## Quick Start
 
-Copy any skill file to your Claude Code commands directory:
+### Install Skills
 
 ```bash
-# Single skill
-cp skills/meeting-notes.md ~/.claude/commands/
-
-# All skills
+# Copy skills to Claude Code commands directory
 cp skills/*.md ~/.claude/commands/
-```
 
-Then use it in Claude Code:
-```
+# Use in Claude Code
 /meeting-notes
+/transcribe
 ```
 
-Optionally, copy `CLAUDE.md.example` to `~/.claude/CLAUDE.md` so Claude auto-detects when to use skills.
+### Configure MCP Servers
 
-## Available Skills
+See [mcp-servers/README.md](mcp-servers/README.md) for setup guides.
 
-### `/meeting-notes`
-Create Obsidian meeting notes from any transcript source (MacWhisper, Otter.ai, etc.).
-
-**Requirements:**
-- Obsidian vault with `Meetings/` and `Transcripts/` folders
-- Claude Code with Obsidian vault MCP server configured
-- One or more transcript sources:
-  - [MacWhisper](https://goodsnooze.gumroad.com/l/macwhisper) with "Automatically create .whisper file" enabled
-  - [Otter.ai](https://otter.ai) with MCP server configured
-
-**Features:**
-- Auto-detects transcript source or specify with flags
-- Creates separate transcript file in `Transcripts/`
-- Creates meeting note in `Meetings/` with link to transcript
-- Extracts topics, action items, decisions from transcript
-- Supports attendees and project name overrides
-
-**What it creates:**
-
-1. `Transcripts/YYYY-MM-DD <Project> Meeting Transcript.md` - full transcript
-2. `Meetings/YYYY-MM-DD <Project> Meeting.md` - structured notes with:
-   - Frontmatter (date, project, attendees, topics, transcriptFile link)
-   - Summary
-   - Key Points
-   - Action Items
-   - Decisions
-
-**Usage:**
-```
-/meeting-notes                              # Auto-detect, most recent transcript
-/meeting-notes clare                        # Find MacWhisper file matching "clare"
-/meeting-notes aaron --otter                # Search Otter for "aaron"
-/meeting-notes --macwhisper                 # Force MacWhisper source
-/meeting-notes --attendees "Name1, Name2"   # Specify attendees
-/meeting-notes --project "ProjectName"      # Override project name
+```bash
+# Example: Add Otter.ai MCP
+claude mcp add -s user otter \
+  -e OTTER_EMAIL=you@email.com \
+  -e OTTER_PASSWORD=your_password \
+  -- python -m otter_mcp
 ```
 
----
+### Global CLAUDE.md
 
-### `/transcribe`
-Transcribe YouTube videos using a remote transcription server.
-
-**Requirements:**
-- SSH access to transcription server
-
-**Features:**
-- Uses YouTube captions when available (instant)
-- Falls back to Whisper transcription
-- Saves to local markdown file
-
-**Usage:**
-```
-/transcribe https://youtube.com/watch?v=...
-/transcribe https://youtu.be/... --output notes.md
-/transcribe <url> --whisper    # Force Whisper instead of captions
+```bash
+# Copy the example to enable global instructions
+cp CLAUDE.md.example ~/.claude/CLAUDE.md
 ```
 
-## Creating Your Own Skills
+## Skills
+
+Custom slash commands that extend Claude Code.
+
+| Skill | Description |
+|-------|-------------|
+| [`/meeting-notes`](skills/meeting-notes.md) | Create Obsidian meeting notes from Otter.ai or MacWhisper |
+| [`/transcribe`](skills/transcribe.md) | Transcribe YouTube videos |
+
+### Creating Skills
 
 Skills are markdown files with YAML frontmatter:
 
@@ -100,38 +76,59 @@ argument-hint: <required-arg> [optional-arg]
 
 # Skill Title
 
-Instructions for Claude Code to follow when this skill is invoked.
-
-## Arguments
-
-The user provides: $ARGUMENTS
-
-## Instructions
-
-1. Step one
-2. Step two
-...
+Instructions for Claude Code...
 ```
 
-### Frontmatter Fields
+## MCP Servers
 
-| Field | Description |
-|-------|-------------|
-| `allowed-tools` | List of tools the skill can use |
-| `description` | One-line description |
-| `argument-hint` | Shows usage hint (e.g., `<url> [--flag]`) |
+Model Context Protocol servers extend Claude with external tools.
 
-### Variables
+| Server | Description |
+|--------|-------------|
+| [Otter.ai](mcp-servers/otter.md) | Meeting transcript search |
+| [Google Workspace](mcp-servers/google-workspace.md) | Gmail, Drive, Calendar, Docs |
+| [Obsidian Vault](mcp-servers/obsidian-vault.md) | Read/write Obsidian notes |
+| [Playwright](mcp-servers/playwright.md) | Browser automation |
+| [Chrome DevTools](mcp-servers/chrome-devtools.md) | Browser debugging |
 
-- `$ARGUMENTS` - User input after the skill name
+## Configuration Reference
 
-## Global CLAUDE.md
+| File | Location | Purpose |
+|------|----------|---------|
+| `~/.claude.json` | User home | MCP servers, user settings |
+| `~/.claude/CLAUDE.md` | User config | Global instructions for all projects |
+| `~/.claude/commands/*.md` | User config | Custom slash command skills |
+| `~/.claude/settings.json` | User config | Enabled plugins |
+| `.mcp.json` | Project root | Project-scoped MCP servers (shared) |
+| `.claude/settings.local.json` | Project | Local project settings (not shared) |
+| `CLAUDE.md` | Project root | Project-specific instructions |
 
-Copy `CLAUDE.md.example` to `~/.claude/CLAUDE.md` to enable auto-detection of when to use skills. This tells Claude to automatically invoke `/meeting-notes` when you say things like "make meeting notes for my call with Aaron".
+## Tips
 
-## Contributing
+### MCP Server Management
 
-Feel free to submit PRs with new skills or improvements to existing ones.
+```bash
+# Add server (user scope - all projects)
+claude mcp add -s user <name> -- <command>
+
+# Add with env vars
+claude mcp add -s user <name> -e KEY=val -- <command>
+
+# List servers
+claude mcp list
+
+# Remove server
+claude mcp remove <name> -s user
+```
+
+### Useful Commands
+
+```
+/help          # Show available commands
+/mcp           # Show MCP server status
+/memory        # Manage project memory
+/config        # View/edit configuration
+```
 
 ## License
 
