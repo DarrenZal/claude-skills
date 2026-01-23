@@ -198,6 +198,12 @@ Tell the user:
 → Uses most recent Otter transcript, overrides project name
 ```
 
+## Safety Rules
+
+- **Only create NEW files** - never overwrite existing meeting notes or transcripts
+- Before writing, check if file exists. If it does, ask user before replacing
+- Never modify other vault files during this process
+
 ## Error Handling
 
 - If no transcript found: list recent options from both sources
